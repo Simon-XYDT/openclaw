@@ -126,6 +126,7 @@ function truncateProviderToolText(text: string): string {
 export function describeToolResultMediaPlaceholder(blocks: readonly unknown[]): string | undefined {
   let hasImage = false;
   let hasAudio = false;
+  let hasNonEmptyText = false;
 
   for (const block of blocks) {
     if (!block || typeof block !== "object") {
@@ -134,6 +135,11 @@ export function describeToolResultMediaPlaceholder(blocks: readonly unknown[]): 
     const record = block as Record<string, unknown>;
     const type = typeof record.type === "string" ? record.type : undefined;
     const mimeType = readMimeType(record);
+
+    // Check for non-empty text blocks
+    if (type === "text" && typeof record.text === "string" && record.text.trim().length > 0) {
+      hasNonEmptyText = true;
+    }
 
     if (
       (type && IMAGE_TOOL_RESULT_TYPES.has(type)) ||
@@ -147,6 +153,11 @@ export function describeToolResultMediaPlaceholder(blocks: readonly unknown[]): 
     ) {
       hasAudio = true;
     }
+  }
+
+  // If there's actual text content, don't show media placeholder
+  if (hasNonEmptyText) {
+    return undefined;
   }
 
   if (hasImage && hasAudio) {
