@@ -301,9 +301,6 @@ export function isSilentReplyPrefixText(
   if (normalized.length < 2) {
     return false;
   }
-  if (/[^A-Z_]/.test(normalized)) {
-    return false;
-  }
   const tokenUpper = token.toUpperCase();
   if (!tokenUpper.startsWith(normalized)) {
     return false;
@@ -311,8 +308,13 @@ export function isSilentReplyPrefixText(
   if (normalized.includes("_")) {
     return true;
   }
-  // Keep underscore guard for generic tokens to avoid suppressing unrelated
-  // uppercase words (e.g. HEART/HE with HEARTBEAT_OK). Only allow bare "NO"
-  // because NO_REPLY streaming can transiently emit that fragment.
+  // For tokens without underscore, only allow bare "NO" as a partial prefix
+  // for NO_REPLY (NO_REPLY streaming can transiently emit that fragment).
+  // Custom tokens containing non-letter characters (digits, hyphens) are safe
+  // for partial prefix matching because their prefixes won't match natural
+  // language words. Full-token match is also safe for any token.
+  if (normalized === tokenUpper || /[^A-Z_]/.test(tokenUpper)) {
+    return true;
+  }
   return tokenUpper === SILENT_REPLY_TOKEN && normalized === "NO";
 }
