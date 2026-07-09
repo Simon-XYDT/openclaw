@@ -117,7 +117,8 @@ describe("resolveAssistantIdentity", () => {
   it("does not leave a lone surrogate when truncating an overlong name", () => {
     const resolveName = (name: string) =>
       resolveAssistantIdentity({
-        cfg: { ui: { assistant: { name } } },
+        cfg: { agents: { list: [{ id: "main", identity: { name } }] } },
+        agentId: "main",
         workspaceDir: "",
       }).name;
     const prefix = "x".repeat(49);
