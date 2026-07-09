@@ -9,6 +9,7 @@ import { resolveTimerTimeoutMs } from "@openclaw/normalization-core/number-coerc
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { getActiveMemorySearchManager } from "../plugins/memory-runtime.js";
+import { truncateUtf16Safe } from "../utils.js";
 import type { RealtimeVoiceAgentConsultResult } from "./agent-consult-runtime.js";
 import { parseRealtimeVoiceAgentConsultArgs } from "./agent-consult-tool.js";
 
@@ -67,8 +68,9 @@ function normalizeSnippet(text: string): string {
     return normalized;
   }
   // Keep individual memory snippets bounded so several hits still fit in a
-  // short realtime response prompt.
-  return `${normalized.slice(0, MAX_SNIPPET_CHARS - 1).trimEnd()}...`;
+  // short realtime response prompt. Use UTF-16 safe truncation to avoid
+  // splitting emoji surrogate pairs.
+  return `${truncateUtf16Safe(normalized, MAX_SNIPPET_CHARS - 1).trimEnd()}...`;
 }
 
 function buildSearchQuery(args: unknown): string {
